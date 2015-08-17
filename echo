@@ -1,0 +1,137 @@
+TCP SERVER
+#include<stdio.h>
+#include<sys/types.h>
+#include<sys/socket.h>
+#include<netinet/in.h>
+#include<netdb.h>
+#include<string.h>
+
+main(int arg,char* argv[])
+{
+	int sockfd,clength,newsockfd;
+	struct sockaddr_in servaddr,cliaddr;
+	sockfd=socket(AF_INET,SOCK_STREAM,0);
+	char buf[4096];
+	servaddr.sin_family=AF_INET;
+	servaddr.sin_addr.s_addr=INADDR_ANY;
+	servaddr.sin_port=htons(5036);
+	bind(sockfd,(struct sockaddr*)&servaddr,sizeof(servaddr));
+	listen(sockfd,5);
+	clength=sizeof(cliaddr);
+	newsockfd=accept(sockfd,(struct sockaddr*)&cliaddr,&clength);
+	while(1)
+	{
+		read(newsockfd,buf,4096);
+		printf("%s",buf);
+		fgets(buf,4096,stdin);
+		write(newsockfd,buf,4096);
+		if(strcmp(buf,"bye")==0) break;
+	}
+	close(sockfd);
+}
+
+TCP CLIENT
+#include<stdio.h>
+#include<sys/types.h>
+#include<sys/socket.h>
+#include<netinet/in.h>
+#include<netdb.h>
+#include<string.h>
+
+main(int arg,char* argv[])
+{
+	int sockfd;
+	struct sockaddr_in servaddr;
+	sockfd=socket(AF_INET,SOCK_STREAM,0);
+	char buf[4096];
+	servaddr.sin_family=AF_INET;
+	servaddr.sin_addr.s_addr=inet_addr("127.0.0.1");
+	servaddr.sin_port=htons(5036);
+	connect(sockfd,(struct sockaddr*)&servaddr,sizeof(servaddr));
+	while(1)
+	{
+		fgets(buf,4096,stdin);
+		write(sockfd,buf,4096);
+		if(strcmp(buf,"bye")==0) break;
+		read(sockfd,buf,4096);
+		printf("%s",buf);
+	}
+	close(sockfd);
+}
+
+
+UDP CLIENT
+
+#include<sys/types.h>
+#include<sys/socket.h>
+#include<netinet/in.h>
+#include<string.h>
+#include<arpa/inet.h>
+#include<string.h>
+#include<arpa/inet.h>
+#include<stdio.h>
+#define MAXLINE 1024
+int main(int argc,char* argv[])
+{
+int sockfd;
+int n;
+//socklen_t len;
+int len;
+char send[MAXLINE],rec[MAXLINE];
+struct sockaddr_in servaddr;
+//strcpy(send,"");
+printf("\nMessage : ");
+scanf("%s",send);
+sockfd=socket(AF_INET,SOCK_DGRAM,0);
+//bzero(&servaddr,sizeof(servaddr));
+servaddr.sin_family=AF_INET;
+servaddr.sin_addr.s_addr=inet_addr("127.0.0.1");
+servaddr.sin_port=htons(3507);
+connect(sockfd,(struct sockaddr*)&servaddr,sizeof(servaddr));
+len=sizeof(servaddr);
+sendto(sockfd,send,MAXLINE,0,(struct sockaddr*)&servaddr,len);
+n=recvfrom(sockfd,rec,MAXLINE,0,NULL,NULL);
+//rec[n]=0;
+printf("Echo : %s\n",rec);
+return 0;
+}
+
+
+UDP SERVER
+
+#include<sys/types.h>
+#include<sys/socket.h>
+#include<netinet/in.h>
+#include<unistd.h>
+#include<netdb.h>
+#include<stdio.h>
+#include<string.h>
+#include<arpa/inet.h>
+#define MAXLINE 1024
+int main(int argc,char **argv)
+{
+int sockfd;
+int n;
+//socklen_t len;
+int len;
+char msg[MAXLINE];
+struct sockaddr_in servaddr,cliaddr;
+sockfd=socket(AF_INET,SOCK_DGRAM,0);
+//bzero(&servaddr,sizeof(servaddr));
+servaddr.sin_family=AF_INET;
+servaddr.sin_addr.s_addr=INADDR_ANY;
+servaddr.sin_port=htons(3507);
+bind(sockfd,(struct sockaddr*)&servaddr,sizeof(servaddr));
+printf("\nI am waiting...");
+for(;;)
+{
+      printf("\n ");
+     len=sizeof(cliaddr);
+     n=recvfrom(sockfd,msg,MAXLINE,0,(struct sockaddr*)&cliaddr,&len);
+     printf("\nClient : %s",msg);
+     if(n<6)
+        perror("send error");
+     sendto(sockfd,msg,n,0,(struct sockaddr*)&cliaddr,len);
+}
+return 0;
+}
