@@ -1,0 +1,75 @@
+DNS SERVER
+
+#include<stdio.h>
+#include<sys/types.h>
+#include<sys/stat.h>
+#include<sys/socket.h>
+#include<netinet/in.h>
+#include<arpa/inet.h>
+#include<string.h>
+
+main()
+{
+	FILE *fp;
+	struct sockaddr_in cliaddr,servaddr;
+	int s,n;
+	char b1[100],b2[100],a[100];
+	s=socket(AF_INET,SOCK_DGRAM,0);
+	servaddr.sin_family=AF_INET;
+	servaddr.sin_addr.s_addr=inet_addr("127.0.0.1");
+	servaddr.sin_port=3000;
+	bind(s,(struct sockaddr*)&servaddr,sizeof(servaddr));
+	n=sizeof(cliaddr);
+	while(1)
+	{
+		strcpy(b2,"");
+		fp=fopen("dns.txt","r");
+		recvfrom(s,b1,sizeof(b1),0,(struct sockaddr*)&cliaddr,&n);
+		while(!feof(fp))
+		{
+			fscanf(fp,"%s",a);
+			if(strcmp(a,b1)==0)
+			{
+				fscanf(fp,"%s",b2);
+				break;
+			}
+		}
+		if(strcmp(b2,"")==0)
+		{
+			strcpy(b2,"not found");
+		}
+	fclose(fp);
+	sendto(s,b2,sizeof(b2),0,(struct sockaddr*)&cliaddr,n);
+	}
+}
+
+
+
+
+
+
+DNS CLIENT
+
+#include<stdio.h>
+#include<sys/types.h>
+#include<sys/stat.h>
+#include<sys/socket.h>
+#include<netinet/in.h>
+#include<arpa/inet.h>
+
+main()
+{
+	struct sockaddr_in servaddr;
+	int s,n;
+	char b1[100],b2[100];
+	s=socket(AF_INET,SOCK_DGRAM,0);
+	servaddr.sin_family=AF_INET;
+	servaddr.sin_addr.s_addr=inet_addr("127.0.0.1");
+	servaddr.sin_port=3000;
+	n=sizeof(servaddr);
+	connect(s,(struct sockaddr*)&servaddr,n);
+	scanf("%s",b1);
+	sendto(s,b1,sizeof(b1),0,(struct sockaddr*)&servaddr,n);
+	recvfrom(s,b2,sizeof(b2),0,NULL,NULL);
+	printf("%s",b2);
+}
