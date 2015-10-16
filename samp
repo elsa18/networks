@@ -4,6 +4,9 @@ ftp
 http
 trace
 ping
+bf
+linkstate
+wired
 
 
 #include<stdio.h>
